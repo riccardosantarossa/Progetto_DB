@@ -8,7 +8,7 @@ CF VARCHAR(16) PRIMARY KEY,
 Nome VARCHAR(256),
 Stipendio FLOAT,
 Indirizzo VARCHAR(256),
-NumeroReparto INTEGER);
+NumeroReparto INTEGER NOT NULL);
 
 ALTER TABLE Reparto
 ADD CONSTRAINT FK_Caporeparto FOREIGN KEY (Caporeparto) REFERENCES
