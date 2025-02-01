@@ -1,6 +1,6 @@
 CREATE TABLE Reparto (
 Nome VARCHAR(256),
-Numero INTEGER PRIMARY KEY,
+Numero INTEGER PRIMARY KEY, 
 Caporeparto VARCHAR(16));
 
 CREATE TABLE Dipendente (
@@ -12,11 +12,17 @@ NumeroReparto INTEGER);
 
 ALTER TABLE Reparto
 ADD CONSTRAINT FK_Caporeparto FOREIGN KEY (Caporeparto) REFERENCES
-Dipendente(CF);
+Dipendente(CF) DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE Reparto
+ALTER COLUMN Caporeparto SET NOT NULL;
 
 ALTER TABLE Dipendente
 ADD CONSTRAINT FK_NumeroReparto FOREIGN KEY (NumeroReparto) REFERENCES
-Reparto(Numero);
+Reparto(Numero) DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE Dipendente
+ALTER COLUMN NumeroReparto SET NOT NULL;
 
 CREATE TABLE Prodotto(
 Codice INTEGER,
