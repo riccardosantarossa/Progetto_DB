@@ -1,5 +1,5 @@
 
-setwd("C:/Users/Utente/Desktop/Progetto_DB")
+setwd("C:/Users/brudo/Desktop/Progetto_DB")
 
 # Connessione con RPostgres
 library(RPostgres)
@@ -76,14 +76,15 @@ aziendeFin <- rbind(aziendeRip1, aziendeRip2)
 numeriTelefono <- cbind(numerotel, aziendeFin)
 #dbWriteTable(connect, name = "numerotelefono", value = numeriTelefono, append = TRUE, row.names = FALSE)
 
-#Popolamento dei reparti
-
 #Popolamento reparto-manager con transazioni
 insertTransactionsManagerReparto("transactions.txt")
 
-
-
 #Popolamento dipendenti
+inserimento("dipendente.sql")
+
+#Popolamento prodotti
+inserimento("prodotto.sql")
+
 
 
 
