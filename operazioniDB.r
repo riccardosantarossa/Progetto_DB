@@ -58,20 +58,6 @@ insertTransactionsManagerReparto <- function(file)
   close(fopen)
 }
 
-#Funzione che genera gli ordini per ogni reparto
-ordiniPerReparto <- function(numReparto)
-{
-  datePossibili <- read.csv('date.csv')
-  
-  prodottiReparto <- dbGetQuery(connect, "SELECT codice FROM prodotto WHERE numeroreparto = $1", numReparto)
-  ordineReparto <- data.frame(numeroordine = seq(from = numReparto, to = 100*num), numreparto = rep(numReparto:numReparto, each = 100),
-                              dataordine = sample(datePossibili, 100, replace = FALSE, ))
-}
-
-
-#Popolamento dei clienti
-#inserimento("cliente.sql")
-
 #Popolamento delle aziende
 #inserimento("fornitore.sql")
 
@@ -103,6 +89,35 @@ forniture <- data.frame(fornitore = sample(fornitori$nome, 50, replace = TRUE), 
 #dbWriteTable(connect, name = "fornisce", value = forniture, append = TRUE, row.names = FALSE)
 
 #Popolamento degli ordini dei reparti
-dati <- dbGetQuery(connect, "select prodotto, numeroreparto, fornitore from fornisce f, prodotto p where f.prodotto = p.codice")
-ordiniReparto <- data.frame(numeroordine = 1:1000, numreparto = )
+date <- 1:365 + as.Date("2023/01/01")
+for (i in 1:10) 
+{
+  prodReparto <- dbGetQuery(connect, "SELECT fornitore, codice FROM prodotto, fornisce WHERE codice = prodotto AND numeroreparto = $1", i)
+  
+  ordini <- data.frame(numeroordine = seq(1, 100), numreparto = rep(i, each = 100), dataordine = sample(date, 100, replace = FALSE), 
+                       quantita = round(runif(n=100, min=1, max=50), 0))
+  
+  temp <- prodReparto[sample(1:nrow(prodReparto), 100, replace = TRUE),]
+  ordini$fornitore <- temp$fornitore
+  ordini$prodotto <- temp$codice
+  
+  #dbWriteTable(connect, name = "ordinereparto", value = ordini, append = TRUE, row.names = FALSE)
+}
+
+#Popolamento dei clienti
+#inserimento("cliente.sql")
+
+#Popolamento degli ordini dei clienti
+qryCliente <- dbGetQuery(connect, "SELECT nome FROM cliente")
+for (i in qryCliente)
+{
+  ordineCliente <- data.frame(numeroordine = seq(1,5), cliente = i, dataordine = sample(date, 5), saldo = 0)
+  print(ordineCliente)
+}
+
+
+
+
+
+
 
