@@ -109,14 +109,33 @@ for (i in 1:10)
 
 #Popolamento degli ordini dei clienti
 qryCliente <- dbGetQuery(connect, "SELECT nome FROM cliente")
-for (i in qryCliente)
+for (i in 1:nrow(qryCliente))
 {
-  ordineCliente <- data.frame(numeroordine = seq(1,5), cliente = i, dataordine = sample(date, 5), saldo = 0)
-  print(ordineCliente)
+  repCliente <- c(rep(qryCliente[i,], 5, each = 1))
+  ordineCliente <- data.frame(numeroordine = seq(1,5), cliente = repCliente, dataordine = sample(date, 5), saldo = 0)
+  #dbWriteTable(connect, name = "ordinecliente", value = ordineCliente, append =  TRUE, row.names = FALSE)
 }
 
+#Popolamento della tabella "CheCosa"
+qryProdotti <- dbGetQuery(connect, "SELECT codice FROM prodotto")
+qryOrdineCliente <- dbGetQuery(connect, "SELECT numeroordine, cliente FROM ordinecliente")
 
+#Creazione del dataframe da popolare per riga in modo incrementale
+cheCosa <- data.frame(numeroordine = 0, cliente = "", prodotto = 0, quantita = 0)
 
+for(i in 1:nrow(qryOrdineCliente))
+{
+   #Aggiungo riga per riga i prodotti contenuti nell'ordine contraddistinto dalla coppia ordineCliente-Cliente
+   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente,
+                                 sample(qryProdotti$codice, 1), sample(1:50, 1)))
+   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente,
+                                 sample(qryProdotti$codice, 1), sample(1:50, 1)))
+   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente,
+                                 sample(qryProdotti$codice, 1), sample(1:50, 1)))
+}
+
+cheCosa <- cheCosa[-1, ]
+#dbWriteTable(connect, name = "checosa", value = cheCosa, append = TRUE, row.names = FALSE)
 
 
 
