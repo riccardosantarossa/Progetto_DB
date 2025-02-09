@@ -1,6 +1,10 @@
 
 setwd("C:/Users/Utente/Desktop/Progetto_DB")
 
+#########################################
+# Codice per il popolamento del database#
+#########################################
+
 # Connessione con RPostgres
 library(RPostgres)
 library(stringr)
@@ -44,7 +48,9 @@ insertTransactionsManagerReparto <- function(file)
     nrep <- values2[2]
     vl <- as.list(c(cf,nrep))
 
-    df <- dbGetQuery(connect, "SELECT 1 FROM reparto r, dipendente d WHERE d.cf = r.caporeparto AND d.cf = $1 AND d.numeroreparto = r.numero AND r.numero = $2;", vl)
+    df <- dbGetQuery(connect, "SELECT 1 
+                               FROM reparto r, dipendente d 
+                               WHERE d.cf = r.caporeparto AND d.cf = $1 AND d.numeroreparto = r.numero AND r.numero = $2;", vl)
 
     if(is.null(df[1,1]))
     {
@@ -123,20 +129,40 @@ qryOrdineCliente <- dbGetQuery(connect, "SELECT numeroordine, cliente FROM ordin
 #Creazione del dataframe da popolare per riga in modo incrementale
 cheCosa <- data.frame(numeroordine = 0, cliente = "", prodotto = 0, quantita = 0)
 
-for(i in 1:nrow(qryOrdineCliente))
+#for(i in 1:nrow(qryOrdineCliente))
 {
-   #Aggiungo riga per riga i prodotti contenuti nell'ordine contraddistinto dalla coppia ordineCliente-Cliente
-   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente,
-                                 sample(qryProdotti$codice, 1), sample(1:50, 1)))
-   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente,
-                                 sample(qryProdotti$codice, 1), sample(1:50, 1)))
-   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente,
-                                 sample(qryProdotti$codice, 1), sample(1:50, 1)))
+   #Estragggo casualmente 3 prodotti differenti da assegnare al cliente
+   #prodottiEstratti <- c(sample(qryProdotti$codice, 3, replace = FALSE))
+   
+   #Aggiungo riga per riga i prodotti contenuti nell'ordine contraddistinto dalla coppia ordineCliente-Cliente 
+   #perchè ogni cliente effettua 3 ordini, che differiscono soltanto per il prodotto
+   #cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[1], sample(1:50, 1)))
+   
+   #cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[2], sample(1:50, 1)))
+   
+   #cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[3], sample(1:50, 1)))
 }
 
-cheCosa <- cheCosa[-1, ]
+#Elimino la riga di intestazione del dataframe
+#cheCosa <- cheCosa[-1, ]
 #dbWriteTable(connect, name = "checosa", value = cheCosa, append = TRUE, row.names = FALSE)
 
 
+################################################
+# Codice per statistiche e generazione dei plot#
+################################################
+
+
+#Plot 1. numero di dipendenti per ogni reparto
+
+qryDipendentiReparti <- dbGetQuery(connect, "SELECT numeroreparto, count(cf)
+                                             FROM dipendente
+                                             GROUP BY numeroreparto
+                                             ORDER BY numeroreparto asc")
+
+datiPlot1 <- as.matrix(qryDipendentiReparti)
+rownames(datiPlot1) <- qryDipendentiReparti$numeroreparto
+barplot(t(datiPlot1), main = "Numero di dipendenti per ogni reparto",
+        xlab = "Numero del reparto", ylab = "Numero di dipendenti", ylim = c(10,50), las = 1, col = "blue")
 
 
