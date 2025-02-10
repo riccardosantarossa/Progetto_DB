@@ -132,15 +132,15 @@ cheCosa <- data.frame(numeroordine = 0, cliente = "", prodotto = 0, quantita = 0
 #for(i in 1:nrow(qryOrdineCliente))
 {
    #Estragggo casualmente 3 prodotti differenti da assegnare al cliente
-   #prodottiEstratti <- c(sample(qryProdotti$codice, 3, replace = FALSE))
+#   prodottiEstratti <- c(sample(qryProdotti$codice, 3, replace = FALSE))
    
    #Aggiungo riga per riga i prodotti contenuti nell'ordine contraddistinto dalla coppia ordineCliente-Cliente 
    #perchè ogni cliente effettua 3 ordini, che differiscono soltanto per il prodotto
-   #cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[1], sample(1:50, 1)))
+#   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[1], sample(1:50, 1)))
    
-   #cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[2], sample(1:50, 1)))
+#   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[2], sample(1:50, 1)))
    
-   #cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[3], sample(1:50, 1)))
+#   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[3], sample(1:50, 1)))
 }
 
 #Elimino la riga di intestazione del dataframe
@@ -152,17 +152,64 @@ cheCosa <- data.frame(numeroordine = 0, cliente = "", prodotto = 0, quantita = 0
 # Codice per statistiche e generazione dei plot#
 ################################################
 
+#Palette di colori
+colors <- terrain.colors(10)
 
 #Plot 1. numero di dipendenti per ogni reparto
-
 qryDipendentiReparti <- dbGetQuery(connect, "SELECT numeroreparto, count(cf)
                                              FROM dipendente
                                              GROUP BY numeroreparto
                                              ORDER BY numeroreparto asc")
 
-datiPlot1 <- as.matrix(qryDipendentiReparti)
+v <- c(as.integer(qryDipendentiReparti$count))
+datiPlot1 <- matrix(v, nrow = length(qryDipendentiReparti$numeroreparto))
 rownames(datiPlot1) <- qryDipendentiReparti$numeroreparto
-barplot(t(datiPlot1), main = "Numero di dipendenti per ogni reparto",
-        xlab = "Numero del reparto", ylab = "Numero di dipendenti", ylim = c(10,50), las = 1, col = "blue")
+plt <- barplot(t(datiPlot1), main = "Numero di dipendenti per ogni reparto",
+                xlab = "Numero del reparto", ylab = "Numero di dipendenti", ylim = c(20,40), las = 1, col = colors[1], xpd = FALSE)
+text(x = plt, y = v + 0.5, labels = v)
+dev.print(png, width = 800, height = 500, 'plot1.png')
+
+
+#Plot 2. numero di prodotti di cui ogni reparto è responsabile, in percentuale
+qryRepartiProdotti <- dbGetQuery(connect, "SELECT numeroreparto, COUNT(codice), r.nome 
+                                           FROM prodotto p, reparto r
+                                           WHERE numeroreparto = numero
+                                           GROUP BY numeroreparto, r.nome                                           
+                                           ORDER BY COUNT(codice) desc")
+v <- c(as.integer(qryRepartiProdotti$count))
+percentage <- paste((round(100*v/sum(v), 2)), "%")
+legenda <-  as.character(qryRepartiProdotti$nome)
+pie(v, percentage, main = "Suddivisione percentuale dei prodotti per reparto", clockwise = TRUE, col = colors)
+legend("left", legend = legenda, inset=c(0, .5), fill = colors, title = "Reparti")
+dev.print(png, width = 800, height = 500, 'plot2.png')
+
+
+#Plot 3. quantità di prodotti venduti dal reparto 9 nel corso del corso del 2023
+mesi <- c('2022-12-31', '2023-01-31', '2023-02-28', '2023-03-31', '2023-04-30', '2023-05-31',
+          '2023-06-30', '2023-07-31', '2023-08-31', '2023-09-30', '2023-10-31', '2023-11-30', '2023-12-31')
+mesi_str <- c("Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre",
+              "Ottobre", "Novembre", "Dicembre")
+totali <- data.frame(tot = 0)
+for(i in 1:12)
+{
+  prm <- list(mesi[i+1], mesi[i])
+  qryOrdini <- dbGetQuery(connect, "SELECT oc.dataordine, SUM(cc.quantita)
+                                    FROM prodotto p, checosa cc, ordinecliente oc 
+                                    WHERE p.codice = cc.prodotto AND cc.numeroordine = oc.numeroordine 
+                                          AND oc.cliente = cc.cliente AND p.numeroreparto = 9
+                                    GROUP BY oc.dataordine
+                                    HAVING oc.dataordine <= $1 AND oc.dataordine > $2
+                                    ORDER BY oc.dataordine ASC", prm)
+  totali <- rbind(totali, sum(c(as.integer(qryOrdini$sum))))
+}
+
+totali <- totali[-1,]
+plot(1:12, totali, col = colors[1], lwd = 3,  type = "b", xlab = "Mesi dell'anno", ylab = "Quantità venduta", las = 1,
+     ylim = c(3000, 4500), main = "Andamento delle vendite del reparto Tecnologia nel corso del 2023", xaxt = "n")
+#axis(1, at = seq(1, 12), labels = mesi_str)
+text(seq(1,12), srt = 90, adj = 1, xpd = TRUE, labels = mesi_str, cex = 1, par("usr")[3]-0.25)
+dev.print(png, width = 800, height = 500, 'plot3.png')
+
+
 
 
