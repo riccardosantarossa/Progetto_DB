@@ -1,5 +1,5 @@
 
-setwd("C:/Users/Utente/Desktop/Progetto_DB")
+setwd("C:/Users/brudo/Desktop/Progetto_DB")
 
 #########################################
 # Codice per il popolamento del database#
@@ -90,9 +90,11 @@ numeriTelefono <- cbind(numerotel, aziendeFin)
 #Popolamento delle forniture dei prodotti
 fornitori <- dbGetQuery(connect, "SELECT nome FROM fornitore")
 prodotti <- dbGetQuery(connect, "SELECT codice FROM prodotto")
-forniture <- data.frame(fornitore = sample(fornitori$nome, 50, replace = TRUE), prodotto = sample(prodotti$codice, 300, replace = FALSE), 
-                        prezzofornitura = round(runif(n = 300, min = 1, max = 100), 2))
-#dbWriteTable(connect, name = "fornisce", value = forniture, append = TRUE, row.names = FALSE)
+forniture <- expand.grid(fornitore = fornitori$nome, prodotto = prodotti$codice)
+forniture <- forniture[sample(nrow(forniture), 500, replace = FALSE), ]
+forniture$prezzofornitura <- round(runif(n = 500, min = 1, max = 100), 2)
+
+dbWriteTable(connect, name = "fornisce", value = forniture, append = TRUE, row.names = FALSE)
 
 #Popolamento degli ordini dei reparti
 date <- 1:365 + as.Date("2023/01/01")
@@ -129,22 +131,22 @@ qryOrdineCliente <- dbGetQuery(connect, "SELECT numeroordine, cliente FROM ordin
 #Creazione del dataframe da popolare per riga in modo incrementale
 cheCosa <- data.frame(numeroordine = 0, cliente = "", prodotto = 0, quantita = 0)
 
-#for(i in 1:nrow(qryOrdineCliente))
+for(i in 1:nrow(qryOrdineCliente))
 {
-   #Estragggo casualmente 3 prodotti differenti da assegnare al cliente
-#   prodottiEstratti <- c(sample(qryProdotti$codice, 3, replace = FALSE))
+   #Estraggo casualmente 3 prodotti differenti da assegnare al cliente
+   prodottiEstratti <- c(sample(qryProdotti$codice, 3, replace = FALSE))
    
    #Aggiungo riga per riga i prodotti contenuti nell'ordine contraddistinto dalla coppia ordineCliente-Cliente 
    #perchè ogni cliente effettua 3 ordini, che differiscono soltanto per il prodotto
-#   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[1], sample(1:50, 1)))
+   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[1], sample(1:50, 1)))
    
-#   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[2], sample(1:50, 1)))
+   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[2], sample(1:50, 1)))
    
-#   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[3], sample(1:50, 1)))
+   cheCosa<- rbind(cheCosa, list(qryOrdineCliente[i,]$numeroordine, qryOrdineCliente[i,]$cliente, prodottiEstratti[3], sample(1:50, 1)))
 }
 
 #Elimino la riga di intestazione del dataframe
-#cheCosa <- cheCosa[-1, ]
+cheCosa <- cheCosa[-1, ]
 #dbWriteTable(connect, name = "checosa", value = cheCosa, append = TRUE, row.names = FALSE)
 
 
@@ -180,15 +182,15 @@ v <- c(as.integer(qryRepartiProdotti$count))
 percentage <- paste((round(100*v/sum(v), 2)), "%")
 legenda <-  as.character(qryRepartiProdotti$nome)
 pie(v, percentage, main = "Suddivisione percentuale dei prodotti per reparto", clockwise = TRUE, col = colors)
-legend("left", legend = legenda, inset=c(0, .5), fill = colors, title = "Reparti")
+legend(x = -2.35, y = 1.1, legend = legenda, inset=c(0, .5), fill = colors, title = "Reparti")
 dev.print(png, width = 800, height = 500, 'plot2.png')
 
 
-#Plot 3. quantità di prodotti venduti dal reparto 9 nel corso del corso del 2023
+#Plot 3. quantità di prodotti venduti dal reparto 9 nel corso del 2023
 mesi <- c('2022-12-31', '2023-01-31', '2023-02-28', '2023-03-31', '2023-04-30', '2023-05-31',
           '2023-06-30', '2023-07-31', '2023-08-31', '2023-09-30', '2023-10-31', '2023-11-30', '2023-12-31')
-mesi_str <- c("Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre",
-              "Ottobre", "Novembre", "Dicembre")
+mesi_str <- c("Gennaio ", "Febbraio ", "Marzo ", "Aprile ", "Maggio ", "Giugno ", "Luglio ", "Agosto ", "Settembre ",
+              "Ottobre ", "Novembre ", "Dicembre ")
 totali <- data.frame(tot = 0)
 for(i in 1:12)
 {
@@ -205,7 +207,7 @@ for(i in 1:12)
 
 totali <- totali[-1,]
 plot(1:12, totali, col = colors[1], lwd = 3,  type = "b", xlab = "Mesi dell'anno", ylab = "Quantità venduta", las = 1,
-     ylim = c(3000, 4500), main = "Andamento delle vendite del reparto Tecnologia nel corso del 2023", xaxt = "n")
+     ylim = c(3000, 4500), main = "Andamento delle vendite del reparto nr. 9 nel corso del 2023", xaxt = "n")
 #axis(1, at = seq(1, 12), labels = mesi_str)
 text(seq(1,12), srt = 90, adj = 1, xpd = TRUE, labels = mesi_str, cex = 1, par("usr")[3]-0.25)
 dev.print(png, width = 800, height = 500, 'plot3.png')
