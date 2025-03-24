@@ -769,7 +769,7 @@ insert into cliente (nome, indirizzo) values ('Franny Borchardt', '55 Monterey W
 insert into cliente (nome, indirizzo) values ('Jaye Tregona', '148 East Park');
 insert into cliente (nome, indirizzo) values ('Hortense Ridgley', '22576 Lerdahl Court');
 insert into cliente (nome, indirizzo) values ('Christian Barneveld', '30874 Mandrake Way');
-insert into cliente (nome, indirizzo) values ('Josselyn January 1st', '72744 Ridgeview Crossing');
+insert into cliente (nome, indirizzo) values ('Josselyn January', '72744 Ridgeview Crossing');
 insert into cliente (nome, indirizzo) values ('Charlie Davidzon', '2 Mcguire Pass');
 insert into cliente (nome, indirizzo) values ('Tull Toulmin', '5 Norway Maple Crossing');
 insert into cliente (nome, indirizzo) values ('Fowler Alexandrou', '97 Homewood Lane');

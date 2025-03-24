@@ -8,6 +8,7 @@ setwd("C:/Users/brudo/Desktop/Progetto_DB")
 # Connessione con RPostgres
 library(RPostgres)
 library(stringr)
+library(ggplot2)
 
 connect <- dbConnect(RPostgres::Postgres(), dbname = "progettoDB", host = "localhost", 
                      port = 5432, user = "postgres", password = "1234")
@@ -94,7 +95,7 @@ forniture <- expand.grid(fornitore = fornitori$nome, prodotto = prodotti$codice)
 forniture <- forniture[sample(nrow(forniture), 500, replace = FALSE), ]
 forniture$prezzofornitura <- round(runif(n = 500, min = 1, max = 100), 2)
 
-dbWriteTable(connect, name = "fornisce", value = forniture, append = TRUE, row.names = FALSE)
+#dbWriteTable(connect, name = "fornisce", value = forniture, append = TRUE, row.names = FALSE)
 
 #Popolamento degli ordini dei reparti
 date <- 1:365 + as.Date("2023/01/01")
@@ -181,9 +182,16 @@ qryRepartiProdotti <- dbGetQuery(connect, "SELECT numeroreparto, COUNT(codice), 
 v <- c(as.integer(qryRepartiProdotti$count))
 percentage <- paste((round(100*v/sum(v), 2)), "%")
 legenda <-  as.character(qryRepartiProdotti$nome)
-pie(v, percentage, main = "Suddivisione percentuale dei prodotti per reparto", clockwise = TRUE, col = colors)
-legend(x = -2.35, y = 1.1, legend = legenda, inset=c(0, .5), fill = colors, title = "Reparti")
-dev.print(png, width = 800, height = 500, 'plot2.png')
+plot <- ggplot(qryRepartiProdotti, aes(x = "", y = count, fill = nome)) +
+        geom_bar(stat = "identity", width = 1) +  
+        coord_polar(theta = "y") +  
+        theme_void() +  
+        labs(title = "Suddivisione percentuale dei prodotti per reparto") +
+        theme(legend.title = element_blank()) +
+        scale_fill_manual(values = colors) +
+        geom_text(aes(label = percentage), position = position_stack(vjust = 0.5), color = "black")
+print(plot)
+ggsave("plot2.png", plot = plot, width = 8, height = 5, dpi = 100)
 
 
 #Plot 3. quantità di prodotti venduti dal reparto 9 nel corso del 2023
@@ -208,7 +216,6 @@ for(i in 1:12)
 totali <- totali[-1,]
 plot(1:12, totali, col = colors[1], lwd = 3,  type = "b", xlab = "Mesi dell'anno", ylab = "Quantità venduta", las = 1,
      ylim = c(3000, 4500), main = "Andamento delle vendite del reparto nr. 9 nel corso del 2023", xaxt = "n")
-#axis(1, at = seq(1, 12), labels = mesi_str)
 text(seq(1,12), srt = 90, adj = 1, xpd = TRUE, labels = mesi_str, cex = 1, par("usr")[3]-0.25)
 dev.print(png, width = 800, height = 500, 'plot3.png')
 

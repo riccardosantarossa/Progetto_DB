@@ -41,37 +41,38 @@ WHERE EXISTS (SELECT *
 
 -- 1 inserimento
 INSERT INTO OrdineReparto 
-VALUES ( 00, 3, 2025-01-14, 5, FornitoreX, 5 );
+VALUES ( 101, 1, 2025-01-14, 5, 'Renner Group', 5 );
 
 -- 2 aggiornamento
 UPDATE CheCosa
 SET Quantità = 12
-WHERE NumeroOrdine = 3 AND Cliente = ClienteX AND Prodotto = 6;
+WHERE NumeroOrdine = 1 AND Cliente = 'Kincaid Lidgley' AND Prodotto = 152;
 
 -- 3 cancellazione
 DELETE FROM Dipendente
-WHERE CF = XXXYYY98B43L483X;
+WHERE CF = '236553m5qn9glw04';
 
--- Q1) quantità media di prodotti ordinati dal reparto gestito dal dipendente XXXYYY98B43L483Y
+-- Q1) quantità media di prodotti ordinati dal reparto gestito dal dipendente PPENNA02B42L483D
 
 CREATE OR REPLACE VIEW RepX (num)
 AS SELECT Numero
    FROM Reparto
-   WHERE Caporeparto = "XXXYYY98B43L483Y"
+   WHERE Caporeparto = "PPENNA02B42L483D"
 
 SELECT AVG(Quantita)
 FROM OrdineReparto O, RepX R
 GROUP BY O.NumReparto
 HAVING O.NumReparto = R.num
 
--- Q2) prodotti che vengono ordinati da esattamente 2 clienti 
-
-SELECT P1.Codice
-FROM CheCosa P1 P2
-WHERE P1.Codice = P2.Codice AND P1.Cliente < P2.Cliente AND 
-      NOT EXISTS ( SELECT *
-                   FROM CheCosa P3
-		   WHERE P3.Codice = P1.Codice AND P1.Cliente <> P3.Cliente AND P2.Cliente <> P3.Cliente)
+-- Q2) prodotti che vengono ordinati da esattamente 33 clienti distinti 
+CREATE OR REPLACE VIEW prodclidist (prodotto, cliente)
+AS SELECT DISTINCT prodotto, Cliente
+   FROM CheCosa
+   
+SELECT prodotto
+FROM prodclidist
+GROUP BY prodotto
+HAVING COUNT(cliente) = 33
 
 -- Q3) i manager dei reparti col massimo numero di dipendenti
 
