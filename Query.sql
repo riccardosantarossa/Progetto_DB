@@ -65,26 +65,19 @@ GROUP BY O.NumReparto
 HAVING O.NumReparto = R.num
 
 -- Q2) prodotti che vengono ordinati da esattamente 33 clienti distinti 
-CREATE OR REPLACE VIEW prodclidist (prodotto, cliente)
-AS SELECT DISTINCT prodotto, Cliente
+CREATE OR REPLACE VIEW ProdCliDist (Prodotto, Cliente)
+AS SELECT DISTINCT Prodotto, Cliente
    FROM CheCosa
    
-SELECT prodotto
-FROM prodclidist
-GROUP BY prodotto
-HAVING COUNT(cliente) = 33
+SELECT Prodotto
+FROM ProdCliDist
+GROUP BY Prodotto
+HAVING COUNT(Cliente) = 33
 
--- Q3) i manager dei reparti col massimo numero di dipendenti
+-- Q3) Il saldo totale del cliente "Kincaid Lidgley" e il totale medio di ciascun ordine
 
-CREATE OR REPLACE VIEW dipCount (numRep, numDip)
-AS SELECT NumeroReparto, COUNT(CF)
-   FROM Dipendente
-   GROUP BY NumeroReparto
-
-SELECT R.Caporeparto
-FROM Reparto R, dipCount D
-WHERE R.Numero = D.numRep AND NOT EXISTS ( SELECT *
-                                           FROM dipCount D2
-					   					   WHERE D2.numDip > D.numDip)
-
+SELECT Cliente, SUM(Saldo) as Totale, AVG(Saldo) as ImportoMedio
+FROM OrdineCliente
+WHERE Cliente = 'Kincaid Lidgley'
+GROUP BY Cliente
 
