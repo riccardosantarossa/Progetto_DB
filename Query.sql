@@ -9,6 +9,7 @@ SELECT r.Caporeparto
 FROM reparto r
 WHERE r.numero IN (SELECT rd.numreparto
 				   FROM dipCountFiltered rd);
+
 --2 Quantità media di vendita dei prodotti forniti da esattamente tre fornitori.
 CREATE OR REPLACE VIEW fornisceAcquisti(prodotto, fornitore, quantita, numeroordine, cliente)
 AS 	SELECT f.prodotto, f.fornitore, cc.quantita, cc.numeroordine, cc.cliente
@@ -67,17 +68,17 @@ HAVING O.NumReparto = R.num
 -- Q2) prodotti che vengono ordinati da esattamente 33 clienti distinti 
 CREATE OR REPLACE VIEW ProdCliDist (Prodotto, Cliente)
 AS SELECT DISTINCT Prodotto, Cliente
-   FROM CheCosa
+   FROM CheCosa;
    
 SELECT Prodotto
 FROM ProdCliDist
 GROUP BY Prodotto
-HAVING COUNT(Cliente) = 33
+HAVING COUNT(Cliente) = 33;
 
 -- Q3) Il saldo totale del cliente "Kincaid Lidgley" e il totale medio di ciascun ordine
 
 SELECT Cliente, SUM(Saldo) as Totale, AVG(Saldo) as ImportoMedio
 FROM OrdineCliente
 WHERE Cliente = 'Kincaid Lidgley'
-GROUP BY Cliente
+GROUP BY Cliente;
 
